@@ -17,8 +17,10 @@
   function safeUrl(u) {
     const s = String(u == null ? '' : u).trim();
     if (!s) return '#';
-    if (/^(https?:|tel:)/i.test(s)) return s;
-    if (/^[a-z][a-z0-9+.-]*:/i.test(s) || s.startsWith('//') || s.startsWith('\\')) return '#';
+    // 瀏覽器解析網址時會忽略 tab、換行與控制字元（"java\nscript:" 仍是 javascript:），判斷前先拿掉
+    const p = Array.from(s).filter(ch => { const c = ch.charCodeAt(0); return !(c <= 32 || (c >= 127 && c <= 159) || c === 173 || (c >= 8203 && c <= 8207) || c === 8232 || c === 8233 || c === 65279); }).join('');
+    if (/^(https?:|tel:)/i.test(p)) return s;
+    if (/^[a-z][a-z0-9+.-]*:/i.test(p) || p.startsWith('//') || p.startsWith('\\') || p.startsWith('/\\')) return '#';
     return s; // 相對路徑，例如 images/xxx.svg
   }
   /** 主題色只收 #RGB/#RRGGBB 或英文色名，避免塞奇怪的 CSS */
@@ -230,6 +232,13 @@
     const lat = num(l && l.lat), lng = num(l && l.lng);
     return lat != null && lng != null && Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
   }
+  /** 地址設為隱藏時，座標也要模糊到小數 3 位（約 100 公尺），否則地圖一點就知道是哪一戶 */
+  const fuzz = v => Math.round(Number(v) * 1000) / 1000;
+  function publicCoord(listing, site) {
+    if (!hasCoord(listing)) return null;
+    if (!isAddressHidden(listing, site)) return { lat: Number(listing.lat), lng: Number(listing.lng) };
+    return { lat: fuzz(listing.lat), lng: fuzz(listing.lng) };
+  }
   /** Google 地圖連結（不需要金鑰）。mode: 'search' 看位置、'dir' 導航 */
   function mapsUrl(target, mode) {
     const q = hasCoord(target) ? Number(target.lat) + ',' + Number(target.lng) : String((target && target.query) || '').trim();
@@ -240,12 +249,14 @@
   }
   /** 物件的地圖連結：有座標用座標，沒有就用「顯示用地址」（隱藏時只送路段） */
   function listingMapsUrl(listing, site, mode) {
-    return mapsUrl({ lat: listing.lat, lng: listing.lng, query: displayAddress(listing, site) }, mode);
+    const c = publicCoord(listing, site);
+    return mapsUrl({ lat: c && c.lat, lng: c && c.lng, query: displayAddress(listing, site) }, mode);
   }
   /** OpenStreetMap 內嵌地圖網址（需座標） */
-  function osmEmbedUrl(listing, delta) {
-    if (!hasCoord(listing)) return '';
-    const d = delta || 0.006, lat = Number(listing.lat), lng = Number(listing.lng);
+  function osmEmbedUrl(listing, delta, site) {
+    const c = publicCoord(listing, site);
+    if (!c) return '';
+    const d = delta || 0.006, lat = c.lat, lng = c.lng;
     const bbox = [lng - d, lat - d * 0.7, lng + d, lat + d * 0.7].map(x => x.toFixed(5)).join(',');
     return 'https://www.openstreetmap.org/export/embed.html?bbox=' + encodeURIComponent(bbox) + '&layer=mapnik&marker=' + lat + '%2C' + lng;
   }
@@ -274,9 +285,12 @@
     if (!l.area) warnings.push('沒填區域 area，首頁篩選會歸到「其他」');
     if (!l.photos || !l.photos.length) warnings.push('沒有照片 photos');
     if (!hasCoord(l) && !l.address) warnings.push('座標和地址都沒填，無法產生導航連結');
-    if (isAddressHidden(l, site) && hasCoord(l)) {
-      const dec = s => (String(s).split('.')[1] || '').length;
-      if (dec(l.lat) > 3 || dec(l.lng) > 3) warnings.push('地址設為隱藏，但座標很精確；建議座標只留小數 3 位（約 100 公尺）');
+    if (isAddressHidden(l, site)) {
+      if (hasCoord(l)) {
+        const dec = s => (String(s).split('.')[1] || '').length;
+        if (dec(l.lat) > 3 || dec(l.lng) > 3) warnings.push('地址設為隱藏，座標很精確；地圖已自動模糊到小數 3 位，但 data/site.js 本身是公開檔案，建議也把座標改成 3 位');
+      }
+      if (/[0-9０-９]+\s*(號|之|樓|F)/i.test(String(l.address || ''))) warnings.push('地址設為隱藏，但 data/site.js 的 address 寫了完整門牌；網站公開後任何人都能讀到這個檔案，建議只寫到路段');
     }
     if (l.invest && num(l.invest.purchase) == null) warnings.push('invest.purchase（購入總價）沒填');
     for (const d of l.documents || []) {
@@ -315,7 +329,7 @@
     fmtNum, formatWan, formatArea, formatPct,
     unitBasis, unitPrice, listingUnitPrice, mortgagePayment, amortize, investCalc,
     mean, median, quantile, percentileRank, stats, prepareComps, filterComps, bargainingRoom, marketReport,
-    maskAddress, isAddressHidden, displayAddress, hasCoord, mapsUrl, listingMapsUrl, osmEmbedUrl,
+    maskAddress, isAddressHidden, displayAddress, hasCoord, publicCoord, mapsUrl, listingMapsUrl, osmEmbedUrl,
     findListing, getQueryParam, validateListing, validateSite, filterListings, uniq,
   };
 });

@@ -246,3 +246,55 @@ test('網頁引用的圖片和腳本都存在', () => {
   }
   for (const r of refs) assert.ok(fs.existsSync(path.join(root, r)), '找不到 ' + r);
 });
+
+test('隱藏地址時，Google 地圖與 OSM 連結的座標也要模糊到小數 3 位', () => {
+  const site = { privacy: { hideAddress: true } };
+  const l = { address: '示範市中正路一段100號', lat: 24.148765432, lng: 120.674123456 };
+  const dir = L.listingMapsUrl(l, site, 'dir');
+  assert.ok(!dir.includes('24.148765') && !dir.includes('120.674123'), dir);
+  assert.ok(dir.includes(encodeURIComponent('24.149,120.674')), dir);
+  const osm = L.osmEmbedUrl(l, null, site);
+  assert.ok(!osm.includes('24.148765') && !osm.includes('120.674123'), osm);
+  assert.ok(osm.includes('marker=24.149%2C120.674'), osm);
+  // 沒隱藏就維持原座標
+  const open = L.listingMapsUrl(Object.assign({}, l, { hideAddress: false }), site, 'dir');
+  assert.ok(open.includes(encodeURIComponent('24.148765432,120.674123456')), open);
+});
+
+test('safeUrl：夾帶換行、tab、控制字元的 javascript: 也要擋掉', () => {
+  for (const u of ['java\nscript:alert(1)', 'java\tscript:alert(1)', 'jav\u0000ascript:alert(1)', '\u200bjavascript:alert(1)',
+    ' \r\n javascript:alert(1)', 'data\n:text/html,x', '/\\evil.example', 'vbscript:x']) {
+    assert.equal(L.safeUrl(u), '#', JSON.stringify(u));
+  }
+  assert.equal(L.safeUrl('https://line.me/x'), 'https://line.me/x');
+  assert.equal(L.safeUrl('tel:0900000001'), 'tel:0900000001');
+  assert.equal(L.safeUrl('images/a.svg'), 'images/a.svg');
+});
+
+test('validateListing：隱藏地址卻在 site.js 寫完整門牌要警告', () => {
+  const r = L.validateListing({ id: 'a', title: 't', type: '透天', price: 1, buildPing: 10, area: 'x', photos: [{ src: 'a' }], address: '示範市中正路一段100號', hideAddress: true }, {});
+  assert.ok(r.warnings.some(w => /完整門牌/.test(w)), r.warnings.join('|'));
+});
+
+test('投資試算邊界：0、負數、空值、極端值不會產生 NaN／Infinity', () => {
+  for (const input of [{}, { purchase: 0, salePrice: 100 }, { purchase: -100, salePrice: 50, loanRatio: 0.7, rate: 0.02, years: 30, holdingMonths: 12 },
+    { purchase: 1000, loanRatio: 2, rate: -0.01, years: 0, holdingMonths: 12, salePrice: 1200, monthlyRent: 0 },
+    { purchase: 1000, loanRatio: 0.7, rate: 0, years: 30, holdingMonths: 24, salePrice: 900, monthlyRent: 30000 },
+    { purchase: '', salePrice: '', holdingMonths: null }]) {
+    const r = L.investCalc(input);
+    for (const [k, v] of Object.entries(r)) assert.ok(v == null || Number.isFinite(v), k + ' ' + v + ' ' + JSON.stringify(input));
+  }
+  const zeroRate = L.investCalc({ purchase: 1000, loanRatio: 0.5, rate: 0, years: 10, holdingMonths: 12 });
+  assert.ok(Math.abs(zeroRate.monthlyPayment - 5000000 / 120) < 1e-6);
+});
+
+test('效能：300 間物件、3000 筆行情資料的統計與報告在 1 秒內', () => {
+  const comps = Array.from({ length: 3000 }, (_, i) => ({ date: '2026-0' + (1 + i % 9), address: '示範市路' + i, price: 1000 + (i * 37) % 800, buildPing: 20 + (i % 40), special: i % 17 === 0 }));
+  const listings = Array.from({ length: 300 }, (_, i) => ({ id: 'L' + i, title: 't' + i, type: '華廈', price: 1200 + i, buildPing: 30 }));
+  const t = Date.now();
+  const rep = L.marketReport(listings[0], comps, { excludeSpecial: true });
+  assert.ok(rep.stats.n > 2000);
+  assert.equal(L.filterListings(listings, { priceMin: 1300 }).length, 200);
+  for (const l of listings) L.findListing({ listings }, l.id);
+  assert.ok(Date.now() - t < 1000);
+});

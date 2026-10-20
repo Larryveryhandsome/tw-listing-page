@@ -74,7 +74,7 @@
   // 位置
   const mapUrl = L.listingMapsUrl(l, SITE, 'search');
   const dirUrl = L.listingMapsUrl(l, SITE, 'dir');
-  const osm = enabled('osmMap') ? L.osmEmbedUrl(l) : '';
+  const osm = enabled('osmMap') ? L.osmEmbedUrl(l, null, SITE) : '';
   html.push(
     '<section class="wrap block"><div class="card"><h2>位置</h2>' +
       '<p class="addr">' + esc(addr || '詳細位置請洽經紀人') + '</p>' +
