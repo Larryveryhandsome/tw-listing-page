@@ -1,0 +1,10 @@
+{
+  "name": "tw-listing-page",
+  "version": "1.0.0",
+  "description": "房仲物件介紹頁模板：填一個資料檔，產生經紀人首頁、物件頁、投資試算與實價登錄行情報告（純靜態，可放 GitHub Pages）",
+  "license": "Apache-2.0",
+  "private": true,
+  "scripts": {
+    "test": "node --test \"tests/*.test.js\""
+  }
+}

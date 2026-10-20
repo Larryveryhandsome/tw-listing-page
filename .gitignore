@@ -1,0 +1,6 @@
+node_modules/
+# 含個資的文件不要進 git（謄本、地籍圖、權狀、身分證……）
+private/
+*.pdf
+.DS_Store
+Thumbs.db
