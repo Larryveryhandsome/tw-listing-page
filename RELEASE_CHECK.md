@@ -14,7 +14,7 @@
 | 4 | 完成使用者任務 | ✅ | 瀏覽器實測（Playwright＋Chromium，桌機 1280 與手機 375 寬各跑一次）：首頁 8 張物件卡→用「類型」篩選剩 3 張→點進物件頁（價格、單價、基本資訊）→網址 id 不存在顯示「找不到物件」→網址 id 塞 <img onerror> 不會執行（被跳脫成文字）→行情報告頁可選物件。console 無 error、無橫向捲動。腳本與截圖由維護者留存（未放進 repo）。 |
 | 5 | 安全／效能／環境 | ✅ | 全部在使用者瀏覽器內運算，不上傳；輸出到畫面的使用者文字有跳脫（單元測試含 XSS 字串）；375 寬無橫向捲動。限制：只測 Chromium，Firefox／Safari／真機未測（列入已知問題）。 |
 | 6 | 資料 | ✅ | 資料就是 data/site.js 一個檔，沒有使用者資料；改壞時用 git 還原即可。 |
-| 7 | 交付版本 | ⚠️ | 歷史需全新（待維護者同意 force push）：最舊的 README commit 含作者個人姓名。現有檔案已乾淨（掃描只剩 README「需要客製化？」段與作者行的事務所名稱，那是刻意保留）。 乾淨 clone 照 README 安裝（零套件）→ npm test 全過；已加 CI（.github/workflows/test.yml）。 |
+| 7 | 交付版本 | ⚠️ | 歷史需全新（待維護者同意 force push）：最舊的 README commit 含作者個人姓名。現有檔案已乾淨（掃描只剩 README「需要客製化？」段與作者行的事務所名稱，那是刻意保留）。 乾淨 clone 照 README 安裝（零套件）→ npm test 全過；已加 CI（.github/workflows/test.yml，Node 20 跑 npm test）；CI 第一次跑就抓到 `npm test` 原本寫的萬用字元在 Node 18／20 找不到測試檔（只有 Node 21 以後認得），已改成 `node --test`，與 README 寫的「Node 18 以上」一致。 |
 | 8 | 出事能恢復 | ✅ | 純靜態網頁，沒有伺服器：錯誤只出現在瀏覽器 console，不會通知；復原方式＝`git revert` 後重新部署 GitHub Pages（約 1 分鐘）；使用者資料的復原靠「備份／匯出」功能（見閘門 6）。核心流程已在上面重驗。 |
 
 ## 掃描結果（deep_audit，含 git 全歷史）
