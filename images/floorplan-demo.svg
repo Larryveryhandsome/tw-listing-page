@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 560" role="img" aria-label="格局示意圖（示範）">
+<rect width="800" height="560" fill="#ffffff"/>
+<g fill="none" stroke="#333" stroke-width="6"><rect x="60" y="60" width="680" height="420"/><line x1="360" y1="60" x2="360" y2="300"/><line x1="60" y1="300" x2="740" y2="300"/><line x1="560" y1="300" x2="560" y2="480"/><line x1="560" y1="60" x2="560" y2="300"/></g>
+<g font-family="sans-serif" font-size="26" fill="#333" text-anchor="middle"><text x="210" y="190">客廳</text><text x="460" y="190">餐廳</text><text x="650" y="190">廚房</text><text x="310" y="400">孝親房</text><text x="650" y="400">衛浴</text></g>
+<text x="400" y="530" font-family="sans-serif" font-size="20" fill="#777" text-anchor="middle">格局示意圖（示範用，非實際尺寸）</text>
+</svg>

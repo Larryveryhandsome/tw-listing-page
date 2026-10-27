@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-label="店面外觀（示意圖）">
+<rect width="800" height="600" fill="#dfeee8"/>
+<circle cx="660" cy="110" r="46" fill="#f4d58d"/>
+<rect y="470" width="800" height="130" fill="#b9d3c8"/>
+<rect x="200" y="160" width="400" height="310" fill="#f7f3ea" stroke="#5b6b63" stroke-width="4"/>
+<g fill="#9cc3e6" stroke="#5b6b63" stroke-width="3"><rect x="230" y="180" width="100" height="60"/><rect x="350" y="180" width="100" height="60"/><rect x="470" y="180" width="100" height="60"/></g>
+<rect x="200" y="270" width="400" height="44" fill="#d9822b"/><text x="400" y="300" font-family="sans-serif" font-size="24" text-anchor="middle" fill="#fff">店面招牌</text>
+<polygon points="200,314 600,314 580,345 220,345" fill="#e9b07a"/>
+<rect x="240" y="360" width="320" height="110" fill="#bcd8ee" stroke="#5b6b63" stroke-width="3"/>
+<rect x="20" y="20" width="150" height="40" rx="20" fill="#ffffff" opacity=".85"/>
+<text x="95" y="47" font-family="sans-serif" font-size="20" text-anchor="middle" fill="#1f6f5c">示意圖</text>
+<text x="400" y="560" font-family="sans-serif" font-size="28" text-anchor="middle" fill="#2f4f45">店面外觀</text>
+</svg>
